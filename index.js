@@ -156,6 +156,26 @@ module.exports = class Borsh {
         return [bs58.encode(data.slice(0, 32)), 32]
     }
 
+    if (type && typeof type === 'object') {
+      if (type.array) {
+        const $type = type.array[0]
+        const size = type.array[1]
+
+        const arr = []
+        let offset = 0
+
+        for (let i = 0; i < size; i++) {
+          const [value, bytes] = this.read($type, data.slice(offset))
+
+          arr.push(value)
+
+          offset += bytes
+        }
+
+        return [arr, offset]
+      }
+    }
+
     throw new Error('Unsupported field type: ' + type)
   }
 }

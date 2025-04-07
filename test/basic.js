@@ -30,6 +30,36 @@ test('Pump AMM - Account - Pool', async function (t) {
   })
 })
 
+test('Pump AMM - Account - GlobalConfig', async function (t) {
+  const borsh = new Borsh(IDL_PUMP_AMM)
+
+  const accountInfo = {
+    value: {
+      data: [
+        'lQicyqD8sNnTu4yrNBzgUoRX8sOBfTJ4RBlj3NVf7Vi6JMmZ3awCqhQAAAAAAAAABQAAAAAAAAAASsL40N1cvJfjKJwZfLUGKlTz2Va5zm5RFfllZ6pcs+ZgjMwd/OlhtDt3nBkVBabi079F1aTbRhitdsgtYXVFNWODcwAOoiyyZNNK/2SgS176v7t03c0EiZexmBVH19EQg4R0KS5nWpS0NuywqZiJQjKKg93GIzgClhJnxc1hF8uNGBoMhJ+pN6bzSt7TCB75VwCqywybs9kJpLkUdSek69eqj7Bg2CkbTE1HXa/3Yslr3A2s6zbAEurRLtOpSEFh4ATIfOuY+lzkf4A4Bv0seUXSlSSVmuwA3tl4FPOPeEb/g4OBi6j6KMPNO21ek/n6uPCXm8NyFazFskaHe6jDyQ==',
+        'base64'
+      ]
+    }
+  }
+
+  t.alike(borsh.decode(accountInfo.value.data, ['accounts', 'GlobalConfig']), {
+    admin: 'FFWtrEQ4B4PKQoVuHYzZq8FabGkVatYzDpEVHsK5rrhF',
+    lp_fee_basis_points: 20n,
+    protocol_fee_basis_points: 5n,
+    disable_flags: 0,
+    protocol_fee_recipients: [
+      '62qc2CNXwrYqQScmEdiZFFAnJR262PxWEuNQtxfafNgV',
+      '7VtfL8fvgNfhz17qKRMjzQEXgbdpnHHHQRh54R9jP2RJ',
+      '7hTckgnGnLQR6sdH7YkqFTAA7VwTfYFaZ6EhEsU3saCX',
+      '9rPYyANsfQZw3DnDmKE3YCQF5E8oD89UXoHn9JFEhJUz',
+      'AVmoTthdrX6tKt4nDjco2D775W2YK3sDhxPcMmzUAmTY',
+      'FWsW1xNtWscwNmKv6wVsU1iTzRN6wmmk3MjxRP5tT7hz',
+      'G5UZAVbAf46s7cKWoyKu8kYTip9DGTpbLZ2qa9Aq69dP',
+      'JCRGumoE9Qi5BBgULTgdgTLjSgkCMSbF62ZZfGs84JeU'
+    ]
+  })
+})
+
 test('SPL Token - Accounts - Account', async function (t) {
   const borsh = new Borsh(IDL_SPL_TOKEN)
 
