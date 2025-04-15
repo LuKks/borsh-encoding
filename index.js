@@ -51,12 +51,23 @@ module.exports = class Borsh {
     }
 
     // We set offset here because layout can be overwritten below
-    let offset = layout.discriminator ? 8 : 0
+    let discriminator = layout.discriminator || null
 
-    if (layout.discriminator) {
+    // Try to find it somewhere else
+    if (!discriminator && sub === 'types') {
+      const ix = this.idl.instructions.find(ix => ix.name === name)
+      const acc = this.idl.accounts.find(ix => ix.name === name)
+
+      if (ix) discriminator = ix.discriminator
+      if (acc) discriminator = acc.discriminator
+    }
+
+    let offset = discriminator ? 8 : 0
+
+    if (discriminator) {
       const hash = data.slice(0, 8).toString('hex')
 
-      if (hash !== Buffer.from(layout.discriminator).toString('hex')) {
+      if (hash !== Buffer.from(discriminator).toString('hex')) {
         throw new Error('Discriminator mismatch')
       }
     }
