@@ -109,3 +109,75 @@ test('SPL Token - Accounts - Account', async function (t) {
     freezeAuthority: '11111111111111111111111111111111'
   })
 })
+
+test('decode events', function (t) {
+  const borsh = new Borsh(IDL_PUMP_AMM)
+
+  const logs = [
+    'Program 11111111111111111111111111111111 invoke [1]',
+    'Program 11111111111111111111111111111111 success',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]',
+    'Program log: Instruction: InitializeAccount',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 3443 of 605850 compute units',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success',
+    'Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA invoke [1]',
+    'Program log: Instruction: Buy',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]',
+    'Program log: Instruction: TransferChecked',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6147 of 575875 compute units',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]',
+    'Program log: Instruction: TransferChecked',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6238 of 567061 compute units',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]',
+    'Program log: Instruction: TransferChecked',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6238 of 558171 compute units',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success',
+    'Program data: Z/RSHyz1d3ewGxRoAAAAAABwOTE0AAAAOqdyYAAAAAAAAAAAAAAAADqncmAAAAAASvlGiiZCAABvDoESdgAAAEE2cl0AAAAAFAAAAAAAAAAt2C8AAAAAAAUAAAAAAAAADPYLAAAAAABuDqJdAAAAAHoErl0AAAAAtEcjOrsZ7PQMJuPsYlLsz38tXk8EDpqWp2r4QOxTPsQSoqvEp1E+fjT+gGvNzkxTJBmsOSVGYUkpX73CWQ9Pi1yCtie9n9neTrs3dnZ7MUqTnonBt2E6De/WlhEcZmrcmDJlw4Nq065SRjx5NQlq4iX/IbWqcQuq/CeQPnhgEZ/Xqo+wYNgpG0xNR12v92LJa9wNrOs2wBLq0S7TqUhBYQHIIfOo8I/viNwxQkp2gK6MloFwTPHl9ciOJ5m3+YIh',
+    'Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA invoke [2]',
+    'Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA consumed 2004 of 546069 compute units',
+    'Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA success',
+    'Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA consumed 58881 of 602407 compute units',
+    'Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA success',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]',
+    'Program log: Instruction: CloseAccount',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 2915 of 543526 compute units',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success',
+    'Program 11111111111111111111111111111111 invoke [1]',
+    'Program 11111111111111111111111111111111 success'
+  ]
+
+  const PROGRAM_DATA = 'Program data: '
+
+  const log = logs.find(log => log.startsWith(PROGRAM_DATA))
+  const data = Buffer.from(log.slice(PROGRAM_DATA.length), 'base64')
+
+  const expected = {
+    timestamp: 1746148272n,
+    base_amount_out: 224164147200n,
+    max_quote_amount_in: 1618126650n,
+    user_base_token_reserves: 0n,
+    user_quote_token_reserves: 1618126650n,
+    pool_base_token_reserves: 72733296097610n,
+    pool_quote_token_reserves: 507116588655n,
+    quote_amount_in: 1567766081n,
+    lp_fee_basis_points: 20n,
+    lp_fee: 3135533n,
+    protocol_fee_basis_points: 5n,
+    protocol_fee: 783884n,
+    quote_amount_in_with_lp_fee: 1570901614n,
+    user_quote_amount_in: 1571685498n,
+    pool: 'D8jJQR9BcBrfVhhnJ61Phok1YNfGhzwcFyKXLiLXGxYj',
+    user: '2FkCvc2FqrPa5NS9r15JWqXcVUyWdUjEJXU1P7or6BvA',
+    user_base_token_account: '7E87PXphaQ1hq96p39obiiPLJLeYmK55e2pS2TKVrAc3',
+    user_quote_token_account: 'BF7YRsiaEH3c8ATFy85vshXhU1nEunUsWFRe1aEnHyYA',
+    protocol_fee_recipient: 'FWsW1xNtWscwNmKv6wVsU1iTzRN6wmmk3MjxRP5tT7hz',
+    protocol_fee_recipient_token_account: '7xQYoUjUJF1Kg6WVczoTAkaNhn5syQYcbvjmFrhjWpx'
+  }
+
+  t.alike(borsh.decode(data, ['events', 'BuyEvent']), expected)
+
+  // Guess the name also
+  t.alike(borsh.decode(data, ['events']), expected)
+})

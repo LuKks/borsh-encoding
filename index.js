@@ -16,7 +16,7 @@ module.exports = class Borsh {
     return hash.slice(0, 8)
   }
 
-  /* layout (data) {
+  layout (data) {
     const hash = data.slice(0, 8).toString('hex')
     const discriminator = this.discriminators.get(hash)
 
@@ -33,7 +33,7 @@ module.exports = class Borsh {
     }
 
     return layout
-  } */
+  }
 
   decode (data, id) {
     if (!data) {
@@ -43,7 +43,17 @@ module.exports = class Borsh {
     if (Array.isArray(data)) data = Buffer.from(data[0], data[1] || 'base64')
     if (typeof data === 'string') data = Buffer.from(data, 'base64')
 
-    const [sub, name] = id
+    let [sub, name] = id
+
+    // Normally for events, need to guess the event name
+    if (!name) {
+      const tmp = this.layout(data)
+
+      if (tmp) {
+        name = tmp.name
+      }
+    }
+
     let layout = this.idl[sub].find(ix => ix.name === name)
 
     if (!layout) {
@@ -57,9 +67,11 @@ module.exports = class Borsh {
     if (!discriminator && sub === 'types') {
       const ix = this.idl.instructions.find(ix => ix.name === name)
       const acc = this.idl.accounts.find(ix => ix.name === name)
+      const evt = this.idl.events.find(ix => ix.name === name)
 
       if (ix) discriminator = ix.discriminator
       if (acc) discriminator = acc.discriminator
+      if (evt) discriminator = evt.discriminator
     }
 
     let offset = discriminator ? 8 : 0
