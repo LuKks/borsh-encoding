@@ -180,6 +180,13 @@ module.exports = class Borsh {
       case 'pubkey':
       case 'Pubkey':
         return [bs58.encode(data.slice(0, 32)), 32]
+
+      case 'string': {
+        const length = data.readUInt32LE(0)
+        const value = data.slice(4, 4 + length).toString('utf8')
+
+        return [value, 4 + length]
+      }
     }
 
     if (type && typeof type === 'object') {
