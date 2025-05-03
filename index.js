@@ -17,6 +17,9 @@ module.exports = class Borsh {
   }
 
   layout (data) {
+    if (Array.isArray(data)) data = Buffer.from(data[0], data[1] || 'base64')
+    if (typeof data === 'string') data = Buffer.from(data, 'base64')
+
     const hash = data.slice(0, 8).toString('hex')
     const discriminator = this.discriminators.get(hash)
 
