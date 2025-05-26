@@ -1,5 +1,5 @@
 const crypto = require('crypto')
-const { default: bs58 } = require('bs58')
+const bs58 = maybeDefaultModule(require('bs58'))
 
 module.exports = class Borsh {
   constructor (idl) {
@@ -240,6 +240,10 @@ function discriminatorsToNames (idl) {
   }
 
   return discriminators
+}
+
+function maybeDefaultModule (mod) {
+  return mod.default ? mod.default : mod
 }
 
 /* function readU64LE_2 (buf) {
