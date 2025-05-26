@@ -8,8 +8,6 @@ module.exports = class Borsh {
   }
 
   static discriminator (prefix, name) {
-    // if (prefix === 'accounts' || prefix === 'events') prefix = prefix.slice(0, prefix.length - 1)
-
     // Types: account, event, global, state
     const hash = crypto.createHash('sha256').update(prefix + ':' + name).digest()
 
@@ -155,6 +153,7 @@ module.exports = class Borsh {
       return field.type.defined.slice(8, field.type.defined.length - 1)
     }
 
+    // TODO
     /* function isOptionEmpty (tag) {
       if (tag.equals(Buffer.from([0, 0, 0, 0]))) return true
       else if (tag.equals(Buffer.from([1, 0, 0, 0]))) return false
@@ -173,6 +172,7 @@ module.exports = class Borsh {
 
       case 'bool': return [data.readUInt8(0) === 1, 1]
 
+      // TODO
       // case 'enum': return [layout.type.variants[data.readUInt8(0)].name, 1]
       case 'enum': return [data.readUInt8(0), 1]
 
@@ -245,12 +245,3 @@ function discriminatorsToNames (idl) {
 function maybeDefaultModule (mod) {
   return mod.default ? mod.default : mod
 }
-
-/* function readU64LE_2 (buf) {
-  return BigInt('0x' + Array.from(buf.slice(0, 8)).reverse().map(b => b.toString(16).padStart(2, '0')).join(''))
-}
-
-function readI64LE_2 (buf) {
-  let u = readU64LE(buf)
-  return u >= 2n ** 63n ? u - 2n ** 64n : u
-} */
