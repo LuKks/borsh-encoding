@@ -1,5 +1,6 @@
-const crypto = require('crypto')
+const { sha256 } = require('@noble/hashes/sha256')
 const bs58 = maybeDefaultModule(require('bs58'))
+const b4a = require('b4a')
 
 module.exports = class Borsh {
   constructor (idl) {
@@ -9,14 +10,14 @@ module.exports = class Borsh {
 
   static discriminator (prefix, name) {
     // Types: account, event, global, state
-    const hash = crypto.createHash('sha256').update(prefix + ':' + name).digest()
+    const hash = b4a.from(sha256(prefix + ':' + name))
 
     return hash.slice(0, 8)
   }
 
   layout (data) {
-    if (Array.isArray(data)) data = Buffer.from(data[0], data[1] || 'base64')
-    if (typeof data === 'string') data = Buffer.from(data, 'base64')
+    if (Array.isArray(data)) data = b4a.from(data[0], data[1] || 'base64')
+    if (typeof data === 'string') data = b4a.from(data, 'base64')
 
     const hash = data.slice(0, 8).toString('hex')
     const discriminator = this.discriminators.get(hash)
@@ -41,8 +42,8 @@ module.exports = class Borsh {
       return null
     }
 
-    if (Array.isArray(data)) data = Buffer.from(data[0], data[1] || 'base64')
-    if (typeof data === 'string') data = Buffer.from(data, 'base64')
+    if (Array.isArray(data)) data = b4a.from(data[0], data[1] || 'base64')
+    if (typeof data === 'string') data = b4a.from(data, 'base64')
 
     let [sub, name] = id
 
@@ -80,7 +81,7 @@ module.exports = class Borsh {
     if (discriminator) {
       const hash = data.slice(0, 8).toString('hex')
 
-      if (hash !== Buffer.from(discriminator).toString('hex')) {
+      if (hash !== b4a.from(discriminator).toString('hex')) {
         throw new Error('Discriminator mismatch')
       }
     }
@@ -155,8 +156,8 @@ module.exports = class Borsh {
 
     // TODO
     /* function isOptionEmpty (tag) {
-      if (tag.equals(Buffer.from([0, 0, 0, 0]))) return true
-      else if (tag.equals(Buffer.from([1, 0, 0, 0]))) return false
+      if (tag.equals(b4a.from([0, 0, 0, 0]))) return true
+      else if (tag.equals(b4a.from([1, 0, 0, 0]))) return false
 
       throw new Error('Option tag is invalid: ' + tag)
     } */
@@ -232,7 +233,7 @@ function discriminatorsToNames (idl) {
     for (const ix of idl[prefix]) {
       if (!ix.discriminator) continue
 
-      const key = Buffer.from(ix.discriminator).toString('hex')
+      const key = b4a.from(ix.discriminator).toString('hex')
       const value = { prefix, name: ix.name }
 
       discriminators.set(key, value)
