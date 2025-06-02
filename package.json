@@ -1,6 +1,6 @@
 {
   "name": "borsh-encoding",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Binary Object Representation Serializer for Hashing",
   "main": "index.js",
   "files": [],
