@@ -1,11 +1,9 @@
 const test = require('brittle')
+const IDL = require('solana-idl')
 const Borsh = require('../index.js')
 
-const IDL_SPL_TOKEN = require('./spl-token.json')
-const IDL_PUMP_AMM = require('./pump-amm.json')
-
 test('Pump AMM - Account - Pool', async function (t) {
-  const borsh = new Borsh(IDL_PUMP_AMM)
+  const borsh = new Borsh(IDL.pump_amm)
 
   const accountInfo = {
     value: {
@@ -31,7 +29,7 @@ test('Pump AMM - Account - Pool', async function (t) {
 })
 
 test('Pump AMM - Account - GlobalConfig', async function (t) {
-  const borsh = new Borsh(IDL_PUMP_AMM)
+  const borsh = new Borsh(IDL.pump_amm)
 
   const accountInfo = {
     value: {
@@ -61,7 +59,7 @@ test('Pump AMM - Account - GlobalConfig', async function (t) {
 })
 
 test('SPL Token - Accounts - Account', async function (t) {
-  const borsh = new Borsh(IDL_SPL_TOKEN)
+  const borsh = new Borsh(IDL.spl_token)
 
   // 2fWkVf417bfxEgUemymkYNagXVitnmNxvq7dhUwnpump
   const accountInfo = {
@@ -86,7 +84,7 @@ test('SPL Token - Accounts - Account', async function (t) {
 })
 
 test('SPL Token - Accounts - Account', async function (t) {
-  const borsh = new Borsh(IDL_SPL_TOKEN)
+  const borsh = new Borsh(IDL.spl_token)
 
   // So11111111111111111111111111111111111111112
   const accountInfo = {
@@ -111,7 +109,7 @@ test('SPL Token - Accounts - Account', async function (t) {
 })
 
 test('decode events', function (t) {
-  const borsh = new Borsh(IDL_PUMP_AMM)
+  const borsh = new Borsh(IDL.pump_amm)
 
   const logs = [
     'Program 11111111111111111111111111111111 invoke [1]',
@@ -177,6 +175,90 @@ test('decode events', function (t) {
   }
 
   t.alike(borsh.decode(data, ['events', 'BuyEvent']), expected)
+
+  // Guess the name also
+  t.alike(borsh.decode(data, ['events']), expected)
+})
+
+test('raydium launchpad', function (t) {
+  const borsh = new Borsh(IDL.raydium_launchpad)
+
+  const logs = [
+    'Program LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj invoke [1]',
+    'Program log: Instruction: BuyExactIn',
+    'Program data: vdt/007mYe57J0nr1ttuiFgOVMjM0EfMt3+fGYuNhZt8W2Z3HE3ggQB4xftR0QIA3nQOPunPAwDXrzD8BgAAAKblBzi8IwIAeHeB7wgAAAAwcQ7noS8CAJgb/WMJAAAAAGcEdgAAAACKiwav5QsAAPCHSwAAAAAAwB8uAQAAAAAwGw8AAAAAAAAAAAAAAAAAAAAB',
+    'Program LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj success',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]'
+  ]
+
+  const PROGRAM_DATA = 'Program data: '
+
+  const log = logs.find(log => log.startsWith(PROGRAM_DATA))
+  const data = Buffer.from(log.slice(PROGRAM_DATA.length), 'base64')
+
+  const expected = {
+    pool_state: '9HjtrQriVJaxaTxszNsnxKM5yH55mpRVpD7dL2Sw58cx',
+    total_base_sell: 793100000000000n,
+    virtual_base: 1073025605596382n,
+    virtual_quote: 30000852951n,
+    real_base_before: 602241254286758n,
+    real_quote_before: 38377977720n,
+    real_base_after: 615322366144816n,
+    real_quote_after: 40332237720n,
+    amount_in: 1980000000n,
+    amount_out: 13081111858058n,
+    protocol_fee: 4950000n,
+    platform_fee: 19800000n,
+    creator_fee: 990000n,
+    share_fee: 0n,
+    trade_direction: { name: 'QuoteToken' },
+    pool_status: { name: 'QuoteToken' },
+    exact_in: true
+  }
+
+  t.alike(borsh.decode(data, ['events', 'TradeEvent']), expected)
+
+  // Guess the name also
+  t.alike(borsh.decode(data, ['events']), expected)
+})
+
+test('raydium launchpad', function (t) {
+  const borsh = new Borsh(IDL.raydium_launchpad)
+
+  const logs = [
+    'Program LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj invoke [1]',
+    'Program log: Instruction: BuyExactIn',
+    'Program data: vdt/007mYe57J0nr1ttuiFgOVMjM0EfMt3+fGYuNhZt8W2Z3HE3ggQB4xftR0QIA3nQOPunPAwDXrzD8BgAAAKblBzi8IwIAeHeB7wgAAAAwcQ7noS8CAJgb/WMJAAAAAGcEdgAAAACKiwav5QsAAPCHSwAAAAAAwB8uAQAAAAAwGw8AAAAAAAAAAAAAAAAAAAAB',
+    'Program LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj success',
+    'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [1]'
+  ]
+
+  const PROGRAM_DATA = 'Program data: '
+
+  const log = logs.find(log => log.startsWith(PROGRAM_DATA))
+  const data = Buffer.from(log.slice(PROGRAM_DATA.length), 'base64')
+
+  const expected = {
+    pool_state: '9HjtrQriVJaxaTxszNsnxKM5yH55mpRVpD7dL2Sw58cx',
+    total_base_sell: 793100000000000n,
+    virtual_base: 1073025605596382n,
+    virtual_quote: 30000852951n,
+    real_base_before: 602241254286758n,
+    real_quote_before: 38377977720n,
+    real_base_after: 615322366144816n,
+    real_quote_after: 40332237720n,
+    amount_in: 1980000000n,
+    amount_out: 13081111858058n,
+    protocol_fee: 4950000n,
+    platform_fee: 19800000n,
+    creator_fee: 990000n,
+    share_fee: 0n,
+    trade_direction: { name: 'QuoteToken' },
+    pool_status: { name: 'QuoteToken' },
+    exact_in: true
+  }
+
+  t.alike(borsh.decode(data, ['events', 'TradeEvent']), expected)
 
   // Guess the name also
   t.alike(borsh.decode(data, ['events']), expected)

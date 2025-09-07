@@ -19,6 +19,7 @@
   "homepage": "https://github.com/lukks/borsh-encoding#readme",
   "devDependencies": {
     "brittle": "^3.3.2",
+    "solana-idl": "^1.1.2",
     "standard": "^17.1.0"
   },
   "dependencies": {

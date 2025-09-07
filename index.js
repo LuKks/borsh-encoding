@@ -113,7 +113,7 @@ module.exports = class Borsh {
             offset += bytes1
             offset += bytes2
           } else {
-            const definition = this.idl.types.find(t => t.name === field.type.defined)
+            const definition = this.idl.types.find(t => t.name === field.type.defined.name ? field.type.defined.name : field.type.defined)
 
             const [value, bytes] = this.read(definition.type.kind, input)
 
@@ -126,6 +126,11 @@ module.exports = class Borsh {
             offset += bytes
           }
 
+          continue
+        }
+
+        // Skip new extra fields when parsing old data
+        if (input.byteLength === 0) {
           continue
         }
 
@@ -147,7 +152,11 @@ module.exports = class Borsh {
     }
 
     function isOption (field) {
-      return field.type.defined.slice(0, 7) === 'COption'
+      if (typeof field.type.defined === 'string') {
+        return field.type.defined.slice(0, 7) === 'COption'
+      } else {
+        return false
+      }
     }
 
     function getOptionType (field) {
