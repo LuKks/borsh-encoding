@@ -178,7 +178,13 @@ module.exports = class Borsh {
       case 'u16': return [data.readUInt16LE(0), 2]
       case 'u32': return [data.readUInt32LE(0), 4]
       case 'u64': return [readU64LE(data.slice(0, 8)), 8]
+      case 'u128': return [readU128LE(data.slice(0, 16)), 16]
+
+      case 'i8': return [data.readInt8(0), 1]
+      case 'i16': return [data.readInt16LE(0), 2]
+      case 'i32': return [data.readInt32LE(0), 4]
       case 'i64': return [readI64LE(data.slice(0, 8)), 8]
+      case 'i128': return [readI128LE(data.slice(0, 16)), 16]
 
       case 'bool': return [data.readUInt8(0) === 1, 1]
 
@@ -227,8 +233,26 @@ function readU64LE (buffer) {
   return new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength).getBigUint64(0, true)
 }
 
+function readU128LE (buffer) {
+  const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+
+  const low = view.getBigUint64(0, true)
+  const high = view.getBigUint64(8, true)
+
+  return (high << 64n) + low
+}
+
 function readI64LE (buffer) {
   return new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength).getBigInt64(0, true)
+}
+
+function readI128LE (buffer) {
+  const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+
+  const low = view.getBigUint64(0, true)
+  const high = view.getBigInt64(8, true)
+
+  return (high << 64n) + BigInt.asUintN(64, low)
 }
 
 function discriminatorsToNames (idl) {
