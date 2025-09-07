@@ -15,11 +15,14 @@ module.exports = class Borsh {
     return hash.slice(0, 8)
   }
 
-  layout (data) {
+  layout (data, opts = {}) {
     if (Array.isArray(data)) data = b4a.from(data[0], data[1] || 'base64')
     if (typeof data === 'string') data = b4a.from(data, 'base64')
 
-    const hash = b4a.toString(data.slice(0, 8), 'hex')
+    // Exception support for Raydium AMM
+    const DISCRIMINATOR_LENGTH = !opts.ray ? 8 : 1
+
+    const hash = b4a.toString(data.slice(0, DISCRIMINATOR_LENGTH), 'hex')
     const discriminator = this.discriminators.get(hash)
 
     if (!discriminator) {
@@ -37,7 +40,7 @@ module.exports = class Borsh {
     return layout
   }
 
-  decode (data, id) {
+  decode (data, id, opts = {}) {
     if (!data) {
       return null
     }
@@ -76,10 +79,13 @@ module.exports = class Borsh {
       if (evt) discriminator = evt.discriminator
     }
 
-    let offset = discriminator ? 8 : 0
+    // Exception support for Raydium AMM
+    const DISCRIMINATOR_LENGTH = !opts.ray ? 8 : 1
+
+    let offset = discriminator ? DISCRIMINATOR_LENGTH : 0
 
     if (discriminator) {
-      const hash = b4a.toString(data.slice(0, 8), 'hex')
+      const hash = b4a.toString(data.slice(0, DISCRIMINATOR_LENGTH), 'hex')
 
       if (hash !== b4a.toString(b4a.from(discriminator), 'hex')) {
         throw new Error('Discriminator mismatch')
