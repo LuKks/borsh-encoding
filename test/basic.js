@@ -2,6 +2,69 @@ const test = require('brittle')
 const IDL = require('solana-idl')
 const Borsh = require('../index.js')
 
+test('vec, option and nested defined', function (t) {
+  const idl = {
+    types: [
+      {
+        name: 'Fees',
+        type: {
+          kind: 'struct',
+          fields: [
+            { name: 'lp_fee_bps', type: 'u64' },
+            { name: 'protocol_fee_bps', type: 'u64' }
+          ]
+        }
+      },
+      {
+        name: 'Shr',
+        type: {
+          kind: 'struct',
+          fields: [
+            { name: 'addr', type: 'pubkey' },
+            { name: 'bps', type: 'u16' },
+            { name: 'fees', type: { defined: { name: 'Fees' } } }
+          ]
+        }
+      }
+    ]
+  }
+
+  const borsh = new Borsh(idl)
+
+  const buf = Buffer.alloc(4 + 32 + 2 + 16)
+  buf.writeUInt32LE(1, 0)
+  buf.writeUInt16LE(300, 4 + 32)
+
+  const data = Buffer.alloc(8)
+  data.writeBigUInt64LE(300n, 0)
+  buf.writeBigUInt64LE(95n, 4 + 32 + 2)
+  buf.writeBigUInt64LE(5n, 4 + 32 + 2 + 8)
+
+  const [vec, vecBytes] = borsh.read({ vec: { defined: { name: 'Shr' } } }, buf)
+
+  t.is(vec.length, 1)
+  t.is(vec[0].addr, '11111111111111111111111111111111')
+  t.is(vec[0].bps, 300)
+  t.is(vec[0].fees.protocol_fee_bps, 5n)
+  t.is(vecBytes, buf.length)
+
+  const [empty] = borsh.read({ vec: 'u8' }, Buffer.from([0, 0, 0, 0]))
+  t.alike(empty, [])
+
+  const some = Buffer.alloc(9)
+  some[0] = 1
+  some.writeBigUInt64LE(300n, 1)
+  const [someValue, someBytes] = borsh.read({ option: 'u64' }, some)
+  t.is(someValue, 300n)
+  t.is(someBytes, 9)
+
+  const [noneValue, noneBytes] = borsh.read({ option: 'u64' }, Buffer.from([0]))
+  t.is(noneValue, null)
+  t.is(noneBytes, 1)
+
+  t.is(data.readBigUInt64LE(0), 300n)
+})
+
 test('Pump AMM - Account - Pool', async function (t) {
   const borsh = new Borsh(IDL.pump_amm)
 
@@ -211,8 +274,8 @@ test('raydium launchpad', function (t) {
     platform_fee: 19800000n,
     creator_fee: 990000n,
     share_fee: 0n,
-    trade_direction: { name: 'QuoteToken' },
-    pool_status: { name: 'QuoteToken' },
+    trade_direction: { name: 'Buy' },
+    pool_status: { name: 'Fund' },
     exact_in: true
   }
 
@@ -253,8 +316,8 @@ test('raydium launchpad', function (t) {
     platform_fee: 19800000n,
     creator_fee: 990000n,
     share_fee: 0n,
-    trade_direction: { name: 'QuoteToken' },
-    pool_status: { name: 'QuoteToken' },
+    trade_direction: { name: 'Buy' },
+    pool_status: { name: 'Fund' },
     exact_in: true
   }
 

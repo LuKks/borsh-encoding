@@ -119,15 +119,16 @@ module.exports = class Borsh {
             offset += bytes1
             offset += bytes2
           } else {
-            const definition = this.idl.types.find(t => t.name === field.type.defined.name ? field.type.defined.name : field.type.defined)
+            const name = getDefinedName(field.type.defined)
+            const definition = this.idl.types.find(t => t.name === name)
 
-            const [value, bytes] = this.read(definition.type.kind, input)
-
-            if (definition.type.kind === 'enum') {
-              struct[field.name] = definition.type.variants[value]
-            } else {
-              struct[field.name] = value
+            if (!definition) {
+              throw new Error('Type definition is not found: ' + name)
             }
+
+            const [value, bytes] = this.readDefined(name, input)
+
+            struct[field.name] = value
 
             offset += bytes
           }
@@ -167,6 +168,13 @@ module.exports = class Borsh {
 
     function getOptionType (field) {
       return field.type.defined.slice(8, field.type.defined.length - 1)
+    }
+
+    function getDefinedName (defined) {
+      if (typeof defined === 'string') return defined
+      if (defined && defined.name) return defined.name
+
+      return defined
     }
 
     // TODO
@@ -229,9 +237,81 @@ module.exports = class Borsh {
 
         return [arr, offset]
       }
+
+      if (type.vec) {
+        const length = data.readUInt32LE(0)
+        let offset = 4
+        const arr = []
+
+        for (let i = 0; i < length; i++) {
+          const [value, bytes] = this.read(type.vec, data.slice(offset))
+
+          arr.push(value)
+
+          offset += bytes
+        }
+
+        return [arr, offset]
+      }
+
+      if (type.option) {
+        const tag = data.readUInt8(0)
+
+        if (tag === 0) return [null, 1]
+
+        const [value, bytes] = this.read(type.option, data.slice(1))
+
+        return [value, 1 + bytes]
+      }
+
+      if (type.defined) {
+        const name = typeof type.defined === 'string' ? type.defined : type.defined.name
+
+        return this.readDefined(name, data)
+      }
     }
 
     throw new Error('Unsupported field type: ' + type)
+  }
+
+  readDefined (name, data) {
+    const definition = this.idl.types.find(t => t.name === name)
+
+    if (!definition) {
+      throw new Error('Type definition is not found: ' + name)
+    }
+
+    if (definition.type.kind === 'enum') {
+      const index = data.readUInt8(0)
+      const variant = definition.type.variants[index]
+
+      return [variant && variant.name ? variant : { name: variant }, 1]
+    }
+
+    if (definition.type.kind === 'struct') {
+      const struct = {}
+      let offset = 0
+
+      for (const field of definition.type.fields) {
+        const fieldName = typeof field === 'string' ? null : field.name
+        const fieldType = typeof field === 'string' ? field : field.type
+        const input = data.slice(offset)
+
+        if (input.byteLength === 0) {
+          continue
+        }
+
+        const [value, bytes] = this.read(fieldType, input)
+
+        if (fieldName) struct[fieldName] = value
+
+        offset += bytes
+      }
+
+      return [struct, offset]
+    }
+
+    return this.read(definition.type.kind, data)
   }
 }
 
